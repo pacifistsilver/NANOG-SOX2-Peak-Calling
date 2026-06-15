@@ -19,7 +19,7 @@ plt.rcParams.update({
 })
 
 print("Loading data...")
-df_bind = pd.read_csv('../data/processed/h3k4me3_promoter_site_counts_chen2008.csv')
+df_bind = pd.read_csv('../data/processed/h3k4me3_promoter_site_counts_chen2008_v2.csv')
 df_burst = pd.read_csv('../data/raw/log.burst.freq vs log.burst.size.csv')
 
 print("Merging...")

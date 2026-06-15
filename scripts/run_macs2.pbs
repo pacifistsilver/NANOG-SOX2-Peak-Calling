@@ -14,17 +14,10 @@ set -euo pipefail
 cd $PBS_O_WORKDIR
 module load miniforge/3
 eval "$(~/miniforge3/bin/conda shell.bash hook)"
-conda activate snakemake 
 conda activate my_macs2_env
 echo "Downloading Chen et al. 2008 data from GEO..."
 wget -q -nc ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM288nnn/GSM288345/suppl/GSM288345_Nanog.bed.gz
 wget -q -nc ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM288nnn/GSM288347/suppl/GSM288347_Sox2.bed.gz
-
-# Load your Anaconda module (Imperial HPC usually uses this)
-module load anaconda3/personal
-
-# Activate the MACS2 conda environment (uncomment and rename if needed)
-# source activate my_macs2_env
 
 echo "Starting MACS2 peak calling for Nanog..."
 macs2 callpeak -t GSM288345_Nanog.bed.gz \

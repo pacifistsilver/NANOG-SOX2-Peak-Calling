@@ -11,8 +11,6 @@ print("1. Loading SOX2 targets from cache...")
 cache_file = '../data/raw/mapping_cache.json'
 with open(cache_file, 'r') as f:
     data = json.load(f)
-    # The user wants "all promoters which are known to be activated by sox2"
-    # We use all SOX2 targets from the ESCAPE dataset
     sox2_targets = set(data['sox2'])
 
 print(f"Total SOX2 targets to process: {len(sox2_targets)}")
@@ -51,8 +49,7 @@ with gzip.open('../data/references/h3k4me3_peaks_mm9.txt.gz', 'rt') as f:
         if start < end:
             h3k4me3_tree[chrom].addi(start, end)
 
-# Define active promoters: Genes with H3K4me3 peaks overlapping the TSS +/- 2kb
-# We will save the original broader window (e.g. TSS +/- 5kb) to count the TF peaks
+# active promoters: genes with H3K4me3 peaks overlapping the TSS +/- 2kb
 active_promoters_windows = {} # gene_id -> list of (chrom, start, end) for TSS +/- 5kb
 for gene_id, intervals in gene_tss_windows.items():
     is_active = False
@@ -75,27 +72,33 @@ for gene_id, intervals in gene_tss_windows.items():
 genes_with_active_promoter = len(active_promoters_windows)
 print(f"Found active H3K4me3 promoters for {genes_with_active_promoter} out of {len(sox2_targets)} SOX2 target genes")
 
-print("4. Extracting discrete SOX2 and NANOG peaks from narrowPeak files...")
-def extract_peaks_from_bed(bed_file):
-    print(f"   Extracting peaks from {bed_file}...")
+print("4. Extracting discrete SOX2 and NANOG peaks from author's peak files...")
+
+# Initialize liftover mm8 -> mm9 ONCE globally to save memory
+converter = ChainFile('../data/references/mm8ToMm9.over.chain.gz')
+
+def extract_peaks_from_txt(txt_file, converter):
+    print(f"   Extracting peaks from {txt_file}...")
     peaks_tree = {} # chrom -> IntervalTree
     
-    # Initialize liftover mm8 -> mm9
-    converter = ChainFile('../data/references/mm8ToMm9.over.chain.gz')
-    
-    with open(bed_file, 'r') as f:
+    with gzip.open(txt_file, 'rt') as f:
         for line in f:
             parts = line.strip().split()
-            if len(parts) >= 3:
-                chrom = parts[0]
+            if len(parts) >= 1:
+                loc = parts[0]
+                if ':' not in loc or '-' not in loc:
+                    continue
+                chrom, coords = loc.split(':')
+                start_str, end_str = coords.split('-')
+                
                 # Ensure it starts with 'chr' to match the H3K4me3 and EnsGene references
                 if not chrom.startswith('chr'):
                     chrom = 'chr' + chrom
                 
-                # We need to lift over mm8 coordinates to mm9
+                # we need to lift over mm8 coordinates to mm9
                 try:
-                    start_mm8 = int(parts[1])
-                    end_mm8 = int(parts[2])
+                    start_mm8 = int(start_str)
+                    end_mm8 = int(end_str)
                     
                     # liftover requires 0-based coordinates, which BED is.
                     start_res = converter[chrom][start_mm8]
@@ -120,8 +123,8 @@ def extract_peaks_from_bed(bed_file):
         
     return peaks_tree
 
-sox2_peaks = extract_peaks_from_bed('../data/raw/Sox2_Chen2008_peaks.narrowPeak')
-nanog_peaks = extract_peaks_from_bed('../data/raw/Nanog_Chen2008_peaks.narrowPeak')
+sox2_peaks = extract_peaks_from_txt('../data/raw/GSM288347_ES_Sox2.txt.gz', converter)
+nanog_peaks = extract_peaks_from_txt('../data/raw/GSM288345_ES_Nanog.txt.gz', converter)
 
 print("5. Counting SOX2 and NANOG sites in active promoters (TSS +/- 5kb)...")
 results = []
@@ -148,7 +151,7 @@ for gene_id, windows in active_promoters_windows.items():
     })
 
 df = pd.DataFrame(results)
-df.to_csv('../data/processed/h3k4me3_promoter_site_counts_chen2008.csv', index=False)
+df.to_csv('../data/processed/h3k4me3_promoter_site_counts_chen2008_v2.csv', index=False)
 
 print("\n--- Summary ---")
 print(f"Total SOX2 targets with H3K4me3 promoter: {len(df)}")
