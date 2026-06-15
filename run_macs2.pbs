@@ -1,0 +1,45 @@
+#!/bin/bash
+#PBS -l select=1:ncpus=4:mem=16gb
+#PBS -l walltime=02:00:00
+#PBS -N macs2_peak_calling
+#PBS -j oe
+
+# ---------------------------------------------------------
+# MACS2 Peak Calling for GSM288345 (Nanog) & GSM288347 (Sox2)
+# Imperial College London HPC Submission Script
+# ---------------------------------------------------------
+
+# Change to the directory where you submitted the job from
+set -euo pipefail
+cd $PBS_O_WORKDIR
+module load miniforge/3
+eval "$(~/miniforge3/bin/conda shell.bash hook)"
+conda activate snakemake 
+conda activate my_macs2_env
+echo "Downloading Chen et al. 2008 data from GEO..."
+wget -q -nc ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM288nnn/GSM288345/suppl/GSM288345_Nanog.bed.gz
+wget -q -nc ftp://ftp.ncbi.nlm.nih.gov/geo/samples/GSM288nnn/GSM288347/suppl/GSM288347_Sox2.bed.gz
+
+# Load your Anaconda module (Imperial HPC usually uses this)
+module load anaconda3/personal
+
+# Activate the MACS2 conda environment (uncomment and rename if needed)
+# source activate my_macs2_env
+
+echo "Starting MACS2 peak calling for Nanog..."
+macs2 callpeak -t GSM288345_Nanog.bed.gz \
+               -f BED \
+               -g mm \
+               -n Nanog_Chen2008 \
+               -q 0.05 \
+               --nomodel --extsize 200
+
+echo "Starting MACS2 peak calling for Sox2..."
+macs2 callpeak -t GSM288347_Sox2.bed.gz \
+               -f BED \
+               -g mm \
+               -n Sox2_Chen2008 \
+               -q 0.05 \
+               --nomodel --extsize 200
+
+echo "Peak calling finished successfully!"

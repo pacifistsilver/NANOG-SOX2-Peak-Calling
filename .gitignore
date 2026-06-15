@@ -1,0 +1,18 @@
+# Data files and generated outputs
+*.gz
+*.bed
+*.narrowPeak
+*.txt
+*.csv
+*.json
+
+# Plots
+*.png
+*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
