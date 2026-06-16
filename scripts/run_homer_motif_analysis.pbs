@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -N homer_motifs
+#PBS -l select=1:ncpus=8:mem=32gb
+#PBS -l walltime=08:00:00
+#PBS -j oe
+
+# Ensure we are in the submission directory
+cd $PBS_O_WORKDIR
+
+# Load HOMER if it's available as a module (Imperial HPC typically uses modules or user conda environments)
+# Adjust the following line to match how HOMER is installed on your HPC account
+# e.g., module load homer OR source activate homer_env
+# module load homer/4.11  # uncomment and edit if applicable
+
+# Ensure mm9 is installed. If not, the first time you run this, HOMER might need it:
+# perl $HOMER_DIR/configureHomer.pl -install mm9
+
+echo "Starting SOX2 motif analysis..."
+findMotifsGenome.pl ../data/processed/SOX2_peaks_mm9.bed mm9 ../data/processed/homer_sox2 -size 200 -mask -p 8
+
+echo "Starting NANOG motif analysis..."
+findMotifsGenome.pl ../data/processed/NANOG_peaks_mm9.bed mm9 ../data/processed/homer_nanog -size 200 -mask -p 8
+
+echo "Done!"
