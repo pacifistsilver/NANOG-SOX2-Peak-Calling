@@ -1,0 +1,3 @@
+	GSE56312_mES_Nanog_Serum_fixed	GSE56312_mES_Sox2_Serum_fixed
+GSE56312_mES_Nanog_Serum_fixed	1.0	0.4282357548462894
+GSE56312_mES_Sox2_Serum_fixed	0.8395400198004722	1.0

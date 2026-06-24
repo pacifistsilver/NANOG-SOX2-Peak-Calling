@@ -1,10 +1,4 @@
-# Data files and generated outputs
-*.gz
-*.bed
-*.narrowPeak
-*.txt
-*.csv
-*.json
+
 
 # Plots
 *.png
@@ -16,4 +10,5 @@ __pycache__/
 .env
 venv/
 .venv/
-./archive
+archive/
+data/processed/homer*
